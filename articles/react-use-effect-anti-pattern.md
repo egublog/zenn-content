@@ -1,5 +1,5 @@
 ---
-title: "【完全解説】ReactのuseEffect：よくある誤解とアンチパターン集"
+title: "ReactのuseEffect：よくある誤解とアンチパターン"
 emoji: "🎯"
 type: "tech"
 topics: ["react", "typescript", "hooks", "frontend"]
@@ -48,7 +48,7 @@ React 18 の Strict Mode では、開発時に副作用が 2 回実行されま�
 これは意図的な挙動で、クリーンアップ処理の漏れを発見するためです。
 :::
 
-# よくある誤解・アンチパターン集
+# よくある誤解・アンチパターン
 
 ## 1. 不要な useEffect の使用 🚫
 
