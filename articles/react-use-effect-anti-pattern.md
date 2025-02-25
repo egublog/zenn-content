@@ -6,7 +6,7 @@ topics: ["react", "typescript", "hooks", "frontend"]
 published: false
 ---
 
-# はじめに
+## はじめに
 
 React 開発で避けて通れない`useEffect`。シンプルに見えて奥が深く、使い方を間違えると思わぬバグの温床になります。本記事では、現場で実際によく遭遇する誤用パターンと、その正しい解決方法を具体的なコード例とともに解説します。
 
@@ -14,9 +14,22 @@ React 開発で避けて通れない`useEffect`。シンプルに見えて奥が
 この記事は、React 中級者を目指すフロントエンドエンジニアを対象としています。React の基本的な概念は理解している前提で解説を進めます。
 :::
 
-# useEffect の基本をおさらい
+## 前提条件
 
-## そもそも useEffect とは？
+この記事を読むにあたって、以下の知識があると理解しやすいでしょう：
+
+- React の基本的な概念（コンポーネント、props、state）
+- 関数コンポーネントの基礎
+- React Hooks の基本的な使い方
+
+使用する環境：
+
+- React 18.x
+- TypeScript 5.x
+
+## useEffect の基本をおさらい
+
+### そもそも useEffect とは？
 
 `useEffect`は**副作用（side effect）** を扱うための Hook です。
 
@@ -26,10 +39,9 @@ React 開発で避けて通れない`useEffect`。シンプルに見えて奥が
   - タイマーのセット
   - イベントリスナーの登録/解除
 
-## 実行タイミングを理解する
+### 実行タイミングを理解する
 
-```tsx
-// 基本的な構文
+```tsx:基本的な構文
 useEffect(
   () => {
     // 実行したい副作用
@@ -48,13 +60,13 @@ React 18 の Strict Mode では、開発時に副作用が 2 回実行されま�
 これは意図的な挙動で、クリーンアップ処理の漏れを発見するためです。
 :::
 
-# よくある誤解・アンチパターン
+## よくある誤解・アンチパターン
 
-## 1. 不要な useEffect の使用 🚫
+### 1. 不要な useEffect の使用 🚫
 
-### 悪い例：単純な計算を useEffect で行う
+#### 悪い例：単純な計算を useEffect で行う
 
-```tsx
+```tsx:アンチパターン
 function PriceDisplay({ basePrice }: { basePrice: number }) {
   const [total, setTotal] = useState(0);
 
@@ -67,17 +79,17 @@ function PriceDisplay({ basePrice }: { basePrice: number }) {
 }
 ```
 
-### 良い例：直接計算するか、useMemo を使う
+#### 良い例：直接計算するか、useMemo を使う
 
-```tsx
+```tsx:推奨パターン
 function PriceDisplay({ basePrice }: { basePrice: number }) {
   // ✅ シンプルな計算なら直接行う
   const total = basePrice * 1.1;
 
   // 🆗 計算コストが高い場合はuseMemoを検討
-  const total = useMemo(() => {
-    return complexTaxCalculation(basePrice);
-  }, [basePrice]);
+  // const total = useMemo(() => {
+  //   return complexTaxCalculation(basePrice);
+  // }, [basePrice]);
 
   return <div>税込価格: {total}円</div>;
 }
@@ -87,11 +99,11 @@ function PriceDisplay({ basePrice }: { basePrice: number }) {
 useEffect は「副作用」のために使うものです。単純な計算や状態更新には使わないようにしましょう。
 :::
 
-## 2. 依存配列の誤用 🚫
+### 2. 依存配列の誤用 🚫
 
-### 悪い例：必要な依存関係の漏れ
+#### 悪い例：必要な依存関係の漏れ
 
-```tsx
+```tsx:アンチパターン
 function SearchComponent({ query, filters }) {
   // 🚫 filtersの変更を検知できない
   useEffect(() => {
@@ -100,9 +112,9 @@ function SearchComponent({ query, filters }) {
 }
 ```
 
-### 良い例：必要な依存関係をすべて含める
+#### 良い例：必要な依存関係をすべて含める
 
-```tsx
+```tsx:推奨パターン
 function SearchComponent({ query, filters }) {
   // ✅ すべての依存関係を含める
   useEffect(() => {
@@ -111,11 +123,11 @@ function SearchComponent({ query, filters }) {
 }
 ```
 
-## 3. 非同期処理の誤った実装 🚫
+### 3. 非同期処理の誤った実装 🚫
 
-### 悪い例：直接 async 関数を渡す
+#### 悪い例：直接 async 関数を渡す
 
-```tsx
+```tsx:アンチパターン
 // 🚫 アンチパターン
 useEffect(async () => {
   const data = await fetchUserData(userId);
@@ -123,9 +135,9 @@ useEffect(async () => {
 }, [userId]);
 ```
 
-### 良い例：内部で非同期関数を定義
+#### 良い例：内部で非同期関数を定義
 
-```tsx
+```tsx:推奨パターン
 function UserProfile({ userId }: { userId: string }) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -172,12 +184,62 @@ function UserProfile({ userId }: { userId: string }) {
 }
 ```
 
+:::details useEffect での非同期処理のベストプラクティス
+
+1. 非同期関数は必ず内部で定義する
+2. マウント状態を追跡する変数を用意する
+3. クリーンアップ関数でマウント状態を更新する
+4. 状態更新前に必ずマウント状態をチェックする
+   :::
+
 :::message
 非同期処理を含む useEffect では、必ずクリーンアップ処理を実装しましょう。
 コンポーネントがアンマウントされた後に状態更新が走るのを防ぐことができます。
 :::
 
-# まとめ
+## useEffect の代替手段
+
+場合によっては、useEffect を使わずに問題を解決できることがあります。
+
+### カスタムフックの活用
+
+```tsx:カスタムフック例
+function useUserData(userId: string) {
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    // 上記の実装と同じ
+  }, [userId]);
+
+  return { userData, isLoading, error };
+}
+
+// 使用例
+function UserProfile({ userId }: { userId: string }) {
+  const { userData, isLoading, error } = useUserData(userId);
+
+  // 以下、表示ロジック
+}
+```
+
+### React Query などのライブラリの活用
+
+```tsx:React Query例
+import { useQuery } from 'react-query';
+
+function UserProfile({ userId }: { userId: string }) {
+  const { data, isLoading, error } = useQuery(
+    ['user', userId],
+    () => fetchUserData(userId)
+  );
+
+  // 以下、表示ロジック
+}
+```
+
+## まとめ
 
 useEffect の正しい使い方のポイントは 3 つです：
 
@@ -186,10 +248,13 @@ useEffect の正しい使い方のポイントは 3 つです：
 3. 非同期処理では適切なクリーンアップを忘れずに
 
 :::message
-useEffect に頼る前に、他の Hooks（useMemo, useCallback など）で解決できないか検討することをお勧めします。
+useEffect に頼る前に、他の Hooks（useMemo, useCallback など）や専用ライブラリで解決できないか検討することをお勧めします。
 :::
 
-# 参考資料
+## 参考資料
 
-- [React 公式ドキュメント - useEffect](https://react.dev/reference/react/useEffect)
-- [React 公式ブログ - useEffect 完全ガイド](https://overreacted.io/ja/a-complete-guide-to-useeffect/)
+https://react.dev/reference/react/useEffect
+
+https://overreacted.io/ja/a-complete-guide-to-useeffect/
+
+https://kentcdodds.com/blog/useeffect-vs-uselayouteffect
