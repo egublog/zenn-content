@@ -22,6 +22,19 @@ published: false
 
 TypeScript の型システムを活用するとき、特定の値の集合を表現するために、enum と`as const`を使ったユニオン型という 2 つの主要なアプローチがあります。この記事では、これらの違いを理解し、それぞれのメリット・デメリットを把握することで、より良いコードを書くための知識を身につけましょう。
 
+## 前提条件
+
+この記事を理解するためには、以下の知識があると役立ちます：
+
+- JavaScript の基本的な知識
+- TypeScript の基本的な型システムの理解
+- モジュールやバンドラーの基本概念
+
+使用する環境：
+
+- TypeScript 4.0 以上
+- 任意のコードエディタ（VS Code 推奨）
+
 ## enum とは
 
 enum は「列挙型」と呼ばれるもので、名前付きの定数セットを定義する方法です。
@@ -53,7 +66,7 @@ const result = move(Direction.Up); // { x: 0, y: 1 }
 
 ## as const とユニオン型
 
-一方、`as const`はオブジェクトやリテラル値に対して、それらを読み取り専用かつ具体的なリテラル型として扱うよう指示するものです。これを組み合わせることで、enum と似た機能を実現できます。
+一方、`as const`はオブジェクトやリテラル値に対して、それらを**読み取り専用かつ具体的なリテラル型**として扱うよう指示するものです。これを組み合わせることで、enum と似た機能を実現できます。
 
 ```typescript
 const Direction = {
@@ -207,7 +220,7 @@ move(999); // 型エラー: '999' は型 '0 | 1 | 2 | 3' に代入できませ�
 
 ### 3. Tree-shaking との相性
 
-モダンな JavaScript のバンドラは「tree-shaking」という機能を使って、使用されていないコードを除去します。`as const`はこのプロセスと相性が良いですが、enum はそうではありません。
+モダンな JavaScript のバンドラは「**tree-shaking**」という機能を使って、使用されていないコードを除去します。`as const`はこのプロセスと相性が良いですが、enum はそうではありません。
 
 | アプローチ | Tree-shaking との相性 | 理由                             |
 | ---------- | --------------------- | -------------------------------- |
@@ -373,7 +386,9 @@ const user: User = {
 
 ## まとめ：どちらを使うべきか
 
-多くの場合、`as const`を使ったアプローチには以下のメリットがあります：
+TypeScript における定数セットの定義方法として、enum と`as const`を比較してきました。
+
+### as const アプローチのメリット
 
 | メリット             | 説明                              |
 | -------------------- | --------------------------------- |
@@ -383,7 +398,7 @@ const user: User = {
 | 柔軟な型操作         | TypeScript の型システムを最大活用 |
 | シンプルなコード生成 | 読みやすい JavaScript コード      |
 
-一方で enum が有用な場面もあります：
+### enum が有用な場面
 
 :::details enum が有用な場面
 
@@ -419,5 +434,5 @@ const name = Direction[0]; // "Up"
 
 @[card](https://www.typescriptlang.org/docs/handbook/enums.html)
 @[card](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-4.html#const-assertions)
-
-皆さんの TypeScript コーディングがより良いものになることを願っています！
+@[card](https://engineering.linecorp.com/ja/blog/typescript-enum-tree-shaking)
+@[card](https://github.com/microsoft/TypeScript/wiki/Performance#preferring-interfaces-over-intersections)
